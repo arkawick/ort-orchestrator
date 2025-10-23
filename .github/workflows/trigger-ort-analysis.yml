@@ -23,7 +23,7 @@ jobs:
         # 🔧 FIXED: Use owner/repo format (not full URLs)
         repository:
           - arkawick/scipy
-          - arkawick/MangaNarrator
+          - arkawick/numpy
       fail-fast: false
       max-parallel: 3  # Analyze 3 repos at a time (adjust based on your needs)
     
@@ -98,7 +98,7 @@ jobs:
         # 🔧 FIXED: Use owner/repo format
         repos=(
           "arkawick/scipy"
-          "arkawick/MangaNarrator"
+          "arkawick/numpy"
         )
         
         for repo in "${repos[@]}"; do
