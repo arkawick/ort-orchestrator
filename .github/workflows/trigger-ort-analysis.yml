@@ -22,8 +22,8 @@ jobs:
       matrix:
         # 🔧 CUSTOMIZE THIS: Add all your target repositories
         repository:
-          - github.com/arkawick/scipy
-          - github.com/arkawick/MangaNarrator
+          - https://github.com/arkawick/scipy
+          - https://github.com/arkawick/MangaNarrator
       fail-fast: false
       max-parallel: 3  # Analyze 3 repos at a time (adjust based on your needs)
     
@@ -78,8 +78,8 @@ jobs:
         
         # 🔧 CUSTOMIZE THIS: List all your repositories
         repos=(
-          "github.com/arkawick/scipy"
-          "github.com/arkawick/MangaNarrator"
+          "https://github.com/arkawick/scipy"
+          "https://github.com/arkawick/MangaNarrator"
         )
         
         for repo in "${repos[@]}"; do
