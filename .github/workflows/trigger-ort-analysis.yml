@@ -1,0 +1,92 @@
+name: Multi-Repo ORT Orchestrator
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC (adjust timezone as needed)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      repositories:
+        description: 'Comma-separated list of repos (e.g., repo1,repo2) - leave empty for all'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  trigger-ort-analysis:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 🔧 CUSTOMIZE THIS: Add all your target repositories
+        repository:
+          - arkawick/scipy
+          - arkawick/MangaNarrator
+      fail-fast: false
+      max-parallel: 3  # Analyze 3 repos at a time (adjust based on your needs)
+    
+    steps:
+    - name: Trigger ORT workflow
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.PAT_TOKEN }}
+        script: |
+          const [owner, repo] = '${{ matrix.repository }}'.split('/');
+          
+          // Check if specific repos were requested
+          const requestedRepos = '${{ inputs.repositories }}';
+          if (requestedRepos && !requestedRepos.split(',').some(r => r.trim() === repo)) {
+            console.log(`⏭️ Skipping ${repo} - not in requested list`);
+            return;
+          }
+          
+          try {
+            console.log(`🚀 Triggering ORT analysis for ${owner}/${repo}`);
+            
+            await github.rest.actions.createWorkflowDispatch({
+              owner: owner,
+              repo: repo,
+              workflow_id: 'action_ort_llm_workflow_deploy',  // Must match your workflow filename
+              ref: 'main'  // Or 'master' depending on your default branch
+            });
+            
+            console.log(`✅ Successfully triggered for ${owner}/${repo}`);
+          } catch (error) {
+            console.error(`❌ Failed to trigger ${owner}/${repo}: ${error.message}`);
+            core.setFailed(error.message);
+          }
+    
+    - name: Wait between triggers
+      run: sleep 10  # Avoid GitHub API rate limiting
+
+  generate-summary:
+    needs: trigger-ort-analysis
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Create execution summary
+      run: |
+        echo "## 📊 Multi-Repository ORT Analysis Triggered" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Repositories Triggered:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # 🔧 CUSTOMIZE THIS: List all your repositories
+        repos=(
+          "arkawick/scipy"
+          "arkawick/MangaNarrator"
+        )
+        
+        for repo in "${repos[@]}"; do
+          echo "- [$repo](https://github.com/$repo/actions)" >> $GITHUB_STEP_SUMMARY
+        done
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🔍 **Next Steps:**" >> $GITHUB_STEP_SUMMARY
+        echo "1. Check individual repository Actions tabs for progress" >> $GITHUB_STEP_SUMMARY
+        echo "2. View the [ORT Dashboard](https://YOUR-ORG.github.io/ort-dashboard/) for aggregated results" >> $GITHUB_STEP_SUMMARY
