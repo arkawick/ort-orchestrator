@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 🔧 CUSTOMIZE THIS: Add all your target repositories
+        # 🔧 FIXED: Use owner/repo format (not full URLs)
         repository:
-          - https://github.com/arkawick/scipy
-          - https://github.com/arkawick/MangaNarrator
+          - arkawick/scipy
+          - arkawick/MangaNarrator
       fail-fast: false
       max-parallel: 3  # Analyze 3 repos at a time (adjust based on your needs)
     
@@ -33,13 +33,21 @@ jobs:
       with:
         github-token: ${{ secrets.PAT_TOKEN }}
         script: |
-          const [owner, repo] = '${{ matrix.repository }}'.split('/');
+          const repoPath = '${{ matrix.repository }}';
+          const [owner, repo] = repoPath.split('/');
+          
+          console.log(`📝 Repository: ${repoPath}`);
+          console.log(`📝 Owner: ${owner}`);
+          console.log(`📝 Repo: ${repo}`);
           
           // Check if specific repos were requested
           const requestedRepos = '${{ inputs.repositories }}';
-          if (requestedRepos && !requestedRepos.split(',').some(r => r.trim() === repo)) {
-            console.log(`⏭️ Skipping ${repo} - not in requested list`);
-            return;
+          if (requestedRepos) {
+            const requestedList = requestedRepos.split(',').map(r => r.trim());
+            if (!requestedList.includes(repo) && !requestedList.includes(repoPath)) {
+              console.log(`⏭️ Skipping ${repo} - not in requested list`);
+              return;
+            }
           }
           
           try {
@@ -48,13 +56,24 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: owner,
               repo: repo,
-              workflow_id: 'action_ort_llm_workflow_deploy',  // Must match your workflow filename
+              workflow_id: 'action_ort_llm_workflow_deploy.yml',  // Add .yml extension
               ref: 'main'  // Or 'master' depending on your default branch
             });
             
             console.log(`✅ Successfully triggered for ${owner}/${repo}`);
           } catch (error) {
             console.error(`❌ Failed to trigger ${owner}/${repo}: ${error.message}`);
+            
+            // More detailed error information
+            if (error.status === 404) {
+              console.error(`   → Possible causes:`);
+              console.error(`      1. Workflow file 'action_ort_llm_workflow_deploy.yml' not found`);
+              console.error(`      2. Repository doesn't exist or PAT doesn't have access`);
+              console.error(`      3. Branch 'main' doesn't exist (try 'master'?)`);
+            } else if (error.status === 403) {
+              console.error(`   → PAT token doesn't have 'workflow' permission`);
+            }
+            
             core.setFailed(error.message);
           }
     
@@ -76,10 +95,10 @@ jobs:
         echo "### 📋 Repositories Triggered:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
-        # 🔧 CUSTOMIZE THIS: List all your repositories
+        # 🔧 FIXED: Use owner/repo format
         repos=(
-          "https://github.com/arkawick/scipy"
-          "https://github.com/arkawick/MangaNarrator"
+          "arkawick/scipy"
+          "arkawick/MangaNarrator"
         )
         
         for repo in "${repos[@]}"; do
@@ -89,4 +108,4 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "🔍 **Next Steps:**" >> $GITHUB_STEP_SUMMARY
         echo "1. Check individual repository Actions tabs for progress" >> $GITHUB_STEP_SUMMARY
-        echo "2. View the [ORT Dashboard](https://YOUR-ORG.github.io/ort-dashboard/) for aggregated results" >> $GITHUB_STEP_SUMMARY
+        echo "2. View the [ORT Dashboard](https://arkawick.github.io/ort-dashboard/) for aggregated results" >> $GITHUB_STEP_SUMMARY
