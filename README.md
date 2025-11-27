@@ -1,19 +1,5 @@
 # 🎯 Multi-Repository ORT Orchestrator
 
-> ⚠️ **DEPRECATED:** This standalone orchestrator has been superseded by the **Multi-Repo Unified** solution.
->
-> **Please use:** [`../multi-repo-unified/`](../multi-repo-unified/) instead, which combines both the orchestrator and dashboard into a single repository with a unified configuration file.
->
-> **Benefits of the unified solution:**
-> - ✅ Single configuration file (`config/repositories.json`) instead of updating 3 locations
-> - ✅ One repository to manage instead of two separate ones
-> - ✅ Combined orchestration + dashboard in one place
-> - ✅ Simpler setup and maintenance
->
-> **Migration:** See [`../multi-repo-unified/README.md`](../multi-repo-unified/README.md) for setup instructions.
-
----
-
 **Automated workflow triggering for ORT (OSS Review Toolkit) analysis across multiple GitHub repositories.**
 
 [![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-blue?logo=github-actions)](https://github.com/features/actions)
