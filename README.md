@@ -1,4 +1,4 @@
-# 🎯 Multi-Repository ORT Orchestrator
+# Multi-Repository ORT Orchestrator
 
 **Automated workflow triggering for ORT (OSS Review Toolkit) analysis across multiple GitHub repositories.**
 
